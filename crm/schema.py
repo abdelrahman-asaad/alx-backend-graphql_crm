@@ -109,7 +109,7 @@ class Mutation(graphene.ObjectType):
 
 # --------- Root Query (Empty for now) ---------
 class Query(graphene.ObjectType):
-    customers = List(CustomerType)
+    all_customers = graphene.List(CustomerType)
     hello = graphene.String(default_value="Hello, GraphQL!")
 
     def resolve_all_customers(self, info):
