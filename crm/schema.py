@@ -108,17 +108,67 @@ class Mutation(graphene.ObjectType):
     create_order = CreateOrder.Field()
 
 # --------- Root Query (Empty for now) ---------
-class CRMQuery(graphene.ObjectType):
+class Query(graphene.ObjectType):
     customers = List(CustomerType)
     hello = graphene.String(default_value="Hello, GraphQL!")
 
-    def resolve_customers(self, info):
-        return Customer.objects.all()
+    def resolve_all_customers(self, info):
+        return Customer.objects.all()       #customer Model
+
+#hello doesn't need resolver because it has default value    
+
 
 
 '''
 if we run the server 8000 and go to localhost:8000/graphql
 we can run the following queries and mutations:
+
+query {
+  hello
+}
+
+then the response will be like:
+
+{
+  "data": {
+    "hello": "Hello, GraphQL!"
+  }
+}
+
+also this query:
+query {
+  allCustomers {
+    id
+    name
+    email
+    phone
+  }
+  hello
+}
+
+then the response will be like:
+{
+  "data": {
+    "allCustomers": [
+      {
+        "id": "1",
+        "name": "Bob",
+        "email": "bob@example.com",
+        "phone": null
+      },
+      {
+        "id": "2",
+        "name": "Carol",
+        "email": "carol@example.com",
+        "phone": null
+      }
+    ],
+    "hello": "Hello, GraphQL!"
+  }
+}
+
+also this query:
+
 mutation {
   bulkCreateCustomers(customers:[
     {name:"Bob", email:"bob@example.com"},

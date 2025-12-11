@@ -108,11 +108,11 @@ class Mutation(graphene.ObjectType):
     create_order = CreateOrder.Field()
 
 # --------- Root Query (Empty for now) ---------
-class CRMQuery(graphene.ObjectType):
-    customers = List(CustomerType)
+class Query(graphene.ObjectType):
+    all_customers = graphene.List(CustomerType)
     hello = graphene.String(default_value="Hello, GraphQL!")
 
-    def resolve_customers(self, info):
+    def resolve_all_customers(self, info):
         return Customer.objects.all()
 
 
