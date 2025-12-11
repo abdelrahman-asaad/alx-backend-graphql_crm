@@ -12,20 +12,21 @@ class CustomerType(DjangoObjectType):
 class ProductType(DjangoObjectType):
     class Meta:
         model = Product
-
+        interfaces = (graphene.relay.Node,)  # so we can use filters on products
 class OrderType(DjangoObjectType):
     class Meta:
         model = Order
-
+        interfaces = (graphene.relay.Node,)  # so we can use filters on orders
 # --------- Mutations ---------
 class CreateCustomer(graphene.Mutation):
     class Arguments:
-        name = String(required=True)
-        email = String(required=True)
-        phone = String()
+        name = graphene.String(required=True)
+        email = graphene.String(required=True)
+        phone = graphene.String()
 
-    customer = Field(CustomerType)
-    message = String()
+    customer = graphene.Field(CustomerType)  # fully qualified
+    message = graphene.String()
+
 
     def mutate(self, info, name, email, phone=None):
         if Customer.objects.filter(email=email).exists():
@@ -102,23 +103,79 @@ class CreateOrder(graphene.Mutation):
 
 # --------- Root Mutation ---------
 class Mutation(graphene.ObjectType):
-    create_customer = CreateCustomer.Field()
+    create_customer = CreateCustomer.Field() #to convert the class into a graphene field
     bulk_create_customers = BulkCreateCustomers.Field()
     create_product = CreateProduct.Field()
     create_order = CreateOrder.Field()
 
 # --------- Root Query (Empty for now) ---------
+from graphene_django.filter import DjangoFilterConnectionField
+from .filters import CustomerFilter, ProductFilter, OrderFilter
+
 class Query(graphene.ObjectType):
     all_customers = graphene.List(CustomerType)
     hello = graphene.String(default_value="Hello, GraphQL!")
+    all_products = DjangoFilterConnectionField(ProductType, filterset_class=ProductFilter)
+    all_orders = DjangoFilterConnectionField(OrderType, filterset_class=OrderFilter) 
+    # use filters in products and orders so we can filter them in the queries like in line 210
 
     def resolve_all_customers(self, info):
-        return Customer.objects.all()
+        return Customer.objects.all()       #customer Model
+
+#hello doesn't need resolver because it has default value    
+
 
 
 '''
 if we run the server 8000 and go to localhost:8000/graphql
 we can run the following queries and mutations:
+
+query {
+  hello
+}
+
+then the response will be like:
+
+{
+  "data": {
+    "hello": "Hello, GraphQL!"
+  }
+}
+
+also this query:
+query {
+  allCustomers {
+    id
+    name
+    email
+    phone
+  }
+  hello
+}
+
+then the response will be like:
+{
+  "data": {
+    "allCustomers": [
+      {
+        "id": "1",
+        "name": "Bob",
+        "email": "bob@example.com",
+        "phone": null
+      },
+      {
+        "id": "2",
+        "name": "Carol",
+        "email": "carol@example.com",
+        "phone": null
+      }
+    ],
+    "hello": "Hello, GraphQL!"
+  }
+}
+
+also this query:
+
 mutation {
   bulkCreateCustomers(customers:[
     {name:"Bob", email:"bob@example.com"},
@@ -149,4 +206,49 @@ then the response will be like:
     }
   }
 } 
+
+query with filters:
+query {
+  allProducts(
+    nameIcontains: "Lap", 
+    priceGte: 500, 
+    priceLte: 1500, 
+    stockGte: 5, 
+    stockLte: 20
+  ) {
+    edges {
+      node {
+        id
+        name
+        price
+        stock
+      }
+    }
+  }
+}
+
+
+another query with filters:
+query {
+  allOrders(customerName: "Alice", productName: "Laptop") {
+    edges {
+      node {
+        id
+        customer {
+          name
+        }
+        products {
+          edges {
+            node {
+              name
+            }
+          }
+        }
+        totalAmount
+        orderDate
+      }
+    }
+  }
+}
+
 '''
