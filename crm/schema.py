@@ -20,12 +20,13 @@ class OrderType(DjangoObjectType):
 # --------- Mutations ---------
 class CreateCustomer(graphene.Mutation):
     class Arguments:
-        name = String(required=True)
-        email = String(required=True)
-        phone = String()
+        name = graphene.String(required=True)
+        email = graphene.String(required=True)
+        phone = graphene.String()
 
-    customer = Field(CustomerType)
-    message = String()
+    customer = graphene.Field(CustomerType)  # fully qualified
+    message = graphene.String()
+
 
     def mutate(self, info, name, email, phone=None):
         if Customer.objects.filter(email=email).exists():
