@@ -14,9 +14,9 @@ def generate_crm_report():
     client = Client(transport=transport, fetch_schema_from_transport=True)
 
     # GraphQL query لجلب إجمالي العملاء والطلبات والإيرادات
-    query = gql("""
+    query = gql("""           #gql is used to define GraphQL queries in Python
     query {
-        totalCustomers: customersCount
+        totalCustomers: customersCount    # to assign query result 'customersCount' to 'totalCustomers'
         totalOrders: ordersCount
         totalRevenue: ordersSumTotalAmount
     }
