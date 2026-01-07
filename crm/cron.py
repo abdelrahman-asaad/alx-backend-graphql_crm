@@ -61,7 +61,7 @@ def update_low_stock():
     mutation = gql("""
     mutation {
         updateLowStockProducts {
-            updatedProducts {           #UpdatedProducts,name,stock are response information from graphql query response
+            updatedProducts {           #updateLowStockProducts,UpdatedProducts,name,stock are response information from graphql query response
                 name
                 stock
             }

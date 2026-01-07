@@ -261,7 +261,7 @@ class ProductType(graphene.ObjectType):
     name = graphene.String()
     stock = graphene.Int()
 
-class UpdateLowStockProducts(graphene.Mutation):
+class UpdateLowStockProducts(graphene.Mutation): #Mutation name
     updated_products = graphene.List(ProductType)
     message = graphene.String()
 

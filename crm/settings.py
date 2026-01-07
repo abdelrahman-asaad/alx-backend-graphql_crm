@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "crm",
     "django_filters",
     "django_crontab",
+    "django_celery_beat",
 ]
 GRAPHENE = {
     "SCHEMA": "alx_backend_graphql.schema.schema"
@@ -49,6 +50,15 @@ CRONJOBS = [
     ('*/5 * * * *', 'crm.cron.log_crm_heartbeat'), #run method "log_crm_heartbeat" in crm/cron.py
 ('0 */12 * * *', 'crm.cron.update_low_stock'),
 ]
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Redis كـ broker
+from celery.schedules import crontab
+CELERY_BEAT_SCHEDULE = {
+    'generate-crm-report': {
+        'task': 'crm.tasks.generate_crm_report',      #'generate_crm_report' method in crm/tasks.py
+        'schedule': crontab(day_of_week='mon', hour=6, minute=0), # كل يوم اثنين 6:00 صباحًا
+    },
+}
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
