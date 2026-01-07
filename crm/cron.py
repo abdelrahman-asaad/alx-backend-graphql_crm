@@ -1,24 +1,37 @@
+# crm/cron.py
+
 import datetime
-import requests
+from gql import gql, Client
+from gql.transport.requests import RequestsHTTPTransport
 
 def log_crm_heartbeat():
-    """Logs heartbeat message every 5 minutes to /tmp/crm_heartbeat_log.txt"""
+    """
+    Logs a heartbeat message every 5 minutes to /tmp/crm_heartbeat_log.txt
+    and queries the GraphQL endpoint to ensure it's responsive.
+    """
     now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
-    message = f"{now} CRM is alive\n"
-    
-    with open("/tmp/crm_heartbeat_log.txt", "a") as f:
-        f.write(message)
+    log_file = "/tmp/crm_heartbeat_log.txt"
 
-    # اختياري: اختبار الـ GraphQL endpoint
+    # سجل الرسالة الأساسية
+    with open(log_file, "a") as f:
+        f.write(f"{now} CRM is alive\n")
+
+    # إعداد transport للاتصال بـ GraphQL
+    transport = RequestsHTTPTransport(
+        url="http://localhost:8000/graphql",
+        verify=True,
+        retries=3,
+    )
+
+    client = Client(transport=transport, fetch_schema_from_transport=True)
+
+    # تعريف query بسيطة (مثال: hello field)
+    query = gql(""" query {hello}""")
+
     try:
-        response = requests.post(
-            "http://localhost:8000/graphql",
-            json={"query": "{ hello }"},
-            timeout=5
-        )
-        if response.status_code == 200:
-            with open("/tmp/crm_heartbeat_log.txt", "a") as f:
-                f.write(f"{now} GraphQL endpoint responsive\n")
+        result = client.execute(query)
+        with open(log_file, "a") as f:
+            f.write(f"{now} GraphQL endpoint responsive: {result}\n")
     except Exception as e:
-        with open("/tmp/crm_heartbeat_log.txt", "a") as f:
+        with open(log_file, "a") as f:
             f.write(f"{now} GraphQL endpoint not reachable: {e}\n")
