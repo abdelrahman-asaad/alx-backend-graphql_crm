@@ -252,3 +252,33 @@ query {
 }
 
 '''
+# crm/schema.py
+
+import graphene
+from crm.models import Product
+
+class ProductType(graphene.ObjectType):
+    name = graphene.String()
+    stock = graphene.Int()
+
+class UpdateLowStockProducts(graphene.Mutation):
+    updated_products = graphene.List(ProductType)
+    message = graphene.String()
+
+    def mutate(self, info):
+        # جلب المنتجات stock < 10
+        low_stock_products = Product.objects.filter(stock__lt=10)
+        updated_list = []
+
+        for product in low_stock_products:
+            product.stock += 10  # إعادة تعبئة المخزون
+            product.save()
+            updated_list.append(ProductType(name=product.name, stock=product.stock))
+
+        return UpdateLowStockProducts(
+            updated_products=updated_list,
+            message=f"{len(updated_list)} products updated successfully."
+        )
+
+class Mutation(graphene.ObjectType):
+    update_low_stock_products = UpdateLowStockProducts.Field()

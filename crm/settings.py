@@ -47,6 +47,7 @@ GRAPHENE = {
 }
 CRONJOBS = [
     ('*/5 * * * *', 'crm.cron.log_crm_heartbeat'), #run method "log_crm_heartbeat" in crm/cron.py
+('0 */12 * * *', 'crm.cron.update_low_stock'),
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
